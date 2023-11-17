@@ -1,6 +1,41 @@
 import gleeunit/should
 import gleam/option.{None, Some}
-import glubs/webvtt.{EndTag, StartTag, Text, Timestamp}
+import glubs/webvtt.{Cue, EndTag, StartTag, Text, Timestamp, WebVTT}
+
+pub fn parse_invalid_header_test() {
+  "INVALID"
+  |> webvtt.parse()
+  |> should.equal(Error(webvtt.ParserError("Must start with \"WEBVTT\"")))
+}
+
+pub fn parse_attached_header_test() {
+  "WEBVTTinvalid"
+  |> webvtt.parse()
+  |> should.equal(Error(webvtt.ParserError(
+    "Header comment must start with space or tab",
+  )))
+}
+
+pub fn parse_only_header_test() {
+  "WEBVTT"
+  |> webvtt.parse()
+  |> should.be_ok()
+}
+
+pub fn parse_header_with_comment_test() {
+  "WEBVTT This is a comment"
+  |> webvtt.parse()
+  |> should.equal(Ok(WebVTT(comment: Some("This is a comment"), cues: [])))
+}
+
+pub fn parse_cue_test() {
+  "WEBVTT\n\n1\n00:00.123 --> 00:00.456\nTest"
+  |> webvtt.parse()
+  |> should.equal(Ok(WebVTT(
+    comment: None,
+    cues: [Cue(id: Some("1"), start_time: 123, end_time: 456, payload: "Test")],
+  )))
+}
 
 pub fn tokenize_text_test() {
   "Hello"
