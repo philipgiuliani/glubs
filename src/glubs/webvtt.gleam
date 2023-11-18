@@ -17,7 +17,7 @@ pub type WebVTT {
 
 // Parses a WebVTT string and returns a Result containing the parsed WebVTT structure or a parsing error.
 pub fn parse(webvtt: String) -> Result(WebVTT, String) {
-  let [header, ..cues] =
+  let [header, ..body] =
     webvtt
     |> string.replace("\r\n", "\n")
     |> string.trim_right()
@@ -27,7 +27,7 @@ pub fn parse(webvtt: String) -> Result(WebVTT, String) {
   let [header, ..] = string.split(header, "\n")
 
   use comment <- result.try(parse_comment(header))
-  use items <- result.try(list.try_map(cues, parse_item))
+  use items <- result.try(list.try_map(body, parse_item))
 
   Ok(WebVTT(comment: comment, items: items))
 }
@@ -115,13 +115,13 @@ pub type TokenizationError {
   InvalidEndToken
 }
 
+/// Tokenizes the given cue payload and returns a Result containing the list of generated tokens or a tokenization error.
 pub fn tokenize(payload: String) -> Result(List(Token), TokenizationError) {
   payload
   |> do_tokenize([])
   |> result.map(list.reverse)
 }
 
-/// Tokenizes the given cue payload and returns a Result containing the list of generated tokens or a tokenization error.
 fn do_tokenize(
   payload: String,
   acc: List(Token),
