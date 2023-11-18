@@ -6,15 +6,13 @@ import simplifile
 pub fn parse_invalid_header_test() {
   "INVALID"
   |> webvtt.parse()
-  |> should.equal(Error(webvtt.ParserError("Must start with \"WEBVTT\"")))
+  |> should.equal(Error("Must start with \"WEBVTT\""))
 }
 
 pub fn parse_attached_header_test() {
   "WEBVTTinvalid"
   |> webvtt.parse()
-  |> should.equal(Error(webvtt.ParserError(
-    "Header comment must start with space or tab",
-  )))
+  |> should.equal(Error("Header comment must start with space or tab"))
 }
 
 pub fn parse_only_header_test() {

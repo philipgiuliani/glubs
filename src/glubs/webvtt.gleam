@@ -1,28 +1,22 @@
-import gleam/option.{None, Some}
+import gleam/option.{None, Option, Some}
 import gleam/string
 import gleam/result
 import gleam/list
 import gleam/int
 
+/// Item represents an individual item in a WebVTT file, which can be either a Note or a Cue.
 pub type Item {
   Note(String)
-  Cue(
-    id: option.Option(String),
-    start_time: Int,
-    end_time: Int,
-    payload: String,
-  )
+  Cue(id: Option(String), start_time: Int, end_time: Int, payload: String)
 }
 
+/// Represents a WebVTT file with an optional comment and a list of items.
 pub type WebVTT {
-  WebVTT(comment: option.Option(String), items: List(Item))
+  WebVTT(comment: Option(String), items: List(Item))
 }
 
-pub type ParserError {
-  ParserError(String)
-}
-
-pub fn parse(webvtt: String) -> Result(WebVTT, ParserError) {
+// Parses a WebVTT string and returns a Result containing the parsed WebVTT structure or a parsing error.
+pub fn parse(webvtt: String) -> Result(WebVTT, String) {
   let [header, ..cues] =
     webvtt
     |> string.replace("\r\n", "\n")
@@ -38,32 +32,31 @@ pub fn parse(webvtt: String) -> Result(WebVTT, ParserError) {
   Ok(WebVTT(comment: comment, items: items))
 }
 
-fn parse_comment(header: String) -> Result(option.Option(String), ParserError) {
+fn parse_comment(header: String) -> Result(Option(String), String) {
   case header {
     "WEBVTT" -> Ok(None)
     "WEBVTT\t" <> comment -> Ok(Some(comment))
     "WEBVTT " <> comment -> Ok(Some(comment))
-    "WEBVTT" <> _other ->
-      Error(ParserError("Header comment must start with space or tab"))
-    _other -> Error(ParserError("Must start with \"WEBVTT\""))
+    "WEBVTT" <> _other -> Error("Header comment must start with space or tab")
+    _other -> Error("Must start with \"WEBVTT\"")
   }
 }
 
-fn parse_item(item: String) -> Result(Item, ParserError) {
+fn parse_item(item: String) -> Result(Item, String) {
   item
   |> parse_note()
   |> result.try_recover(fn(_) { parse_cue(item) })
 }
 
-fn parse_note(note: String) -> Result(Item, ParserError) {
+fn parse_note(note: String) -> Result(Item, String) {
   case note {
     "NOTE\n" <> note -> Ok(Note(note))
     "NOTE " <> note -> Ok(Note(note))
-    _other -> Error(ParserError("Invalid note"))
+    _other -> Error("Invalid note")
   }
 }
 
-fn parse_cue(cue: String) -> Result(Item, ParserError) {
+fn parse_cue(cue: String) -> Result(Item, String) {
   use #(id, rest) <- result.try(parse_cue_id(cue))
 
   case string.split_once(rest, "\n") {
@@ -71,13 +64,11 @@ fn parse_cue(cue: String) -> Result(Item, ParserError) {
       use #(start, end) <- result.try(parse_timestamps(line))
       Ok(Cue(id: id, payload: payload, start_time: start, end_time: end))
     }
-    Error(Nil) -> Error(ParserError("Invalid cue"))
+    Error(Nil) -> Error("Invalid cue")
   }
 }
 
-fn parse_cue_id(
-  cue: String,
-) -> Result(#(option.Option(String), String), ParserError) {
+fn parse_cue_id(cue: String) -> Result(#(Option(String), String), String) {
   case string.split_once(cue, "\n") {
     Ok(#(id, rest)) -> {
       case string.contains(id, "-->") {
@@ -85,42 +76,40 @@ fn parse_cue_id(
         False -> Ok(#(Some(id), rest))
       }
     }
-    Error(Nil) -> Error(ParserError("Invalid cue"))
+    Error(Nil) -> Error("Invalid cue")
   }
 }
 
-fn parse_timestamps(line: String) -> Result(#(Int, Int), ParserError) {
+fn parse_timestamps(line: String) -> Result(#(Int, Int), String) {
   case string.split(line, " --> ") {
     [start, end] -> {
       use start <- result.try(
         start
         |> parse_timestamp()
-        |> result.replace_error(ParserError("Invalid start timestamp")),
+        |> result.replace_error("Invalid start timestamp"),
       )
 
       use end <- result.try(
         end
         |> parse_timestamp()
-        |> result.replace_error(ParserError("Invalid end timestamp")),
+        |> result.replace_error("Invalid end timestamp"),
       )
 
       Ok(#(start, end))
     }
-    _other -> Error(ParserError("Invalid timestamp"))
+    _other -> Error("Invalid timestamp")
   }
 }
 
+/// Token represents individual tokens that can be generated during the tokenization of WebVTT cue payload.
 pub type Token {
-  StartTag(
-    tag: String,
-    classes: List(String),
-    annotation: option.Option(String),
-  )
+  StartTag(tag: String, classes: List(String), annotation: Option(String))
   Text(content: String)
   Timestamp(ms: Int)
   EndTag(tag: String)
 }
 
+/// TokenizationError represents errors that may occur during the tokenization process.
 pub type TokenizationError {
   InvalidStartToken
   InvalidEndToken
@@ -132,6 +121,7 @@ pub fn tokenize(payload: String) -> Result(List(Token), TokenizationError) {
   |> result.map(list.reverse)
 }
 
+/// Tokenizes the given cue payload and returns a Result containing the list of generated tokens or a tokenization error.
 fn do_tokenize(
   payload: String,
   acc: List(Token),
