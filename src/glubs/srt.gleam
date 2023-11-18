@@ -9,12 +9,12 @@ pub type Srt {
   Srt(cues: List(Cue))
 }
 
-// Cue represents a single cue in a srt file.
+/// Cue represents a single cue in a srt file.
 pub type Cue {
   Cue(id: Int, start_time: Int, end_time: Int, payload: String)
 }
 
-// Parses a Srt string and returns a Result containing the parsed Srt structure or a parsing error.
+/// Parses a Srt string and returns a Result containing the parsed Srt structure or a parsing error.
 pub fn parse(input: String) -> Result(Srt, String) {
   input
   |> string.replace("\r\n", "\n")
