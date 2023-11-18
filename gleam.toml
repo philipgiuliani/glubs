@@ -1,10 +1,15 @@
 name = "glubs"
-version = "0.1.0"
+version = "0.2.0"
 
-description = "WebVTT parser and payload tokenizer"
+description = "WebVTT and SRT parser and serializer."
+
 licences = ["Apache-2.0"]
+
 repository = { type = "github", user = "philipgiuliani", repo = "glubs" }
-links = [{ title = "Website", href = "https://github.com/philipgiuliani/glubs" }]
+
+internal_modules = [
+  "glubs/timestamp"
+]
 
 [dependencies]
 gleam_stdlib = "~> 0.32"

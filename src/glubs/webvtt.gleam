@@ -2,8 +2,8 @@ import gleam/option.{None, Option, Some}
 import gleam/string
 import gleam/result
 import gleam/list
-import gleam/int
 import gleam/string_builder.{StringBuilder}
+import glubs/timestamp
 
 /// Item represents an individual item in a WebVTT file, which can be either a Note or a Cue.
 pub type Item {
@@ -67,8 +67,8 @@ fn item_to_string(item: Item) -> StringBuilder {
         False -> string_builder.from_strings(["NOTE ", content])
       }
     Cue(id: id, start_time: start_time, end_time: end_time, payload: payload) -> {
-      let start_time = timestamp_to_string(start_time)
-      let end_time = timestamp_to_string(end_time)
+      let start_time = timestamp.to_string(start_time, ".")
+      let end_time = timestamp.to_string(end_time, ".")
       let timestamp =
         start_time
         |> string_builder.append(" --> ")
@@ -117,7 +117,7 @@ fn parse_cue(cue: String) -> Result(Item, String) {
 
   case string.split_once(rest, "\n") {
     Ok(#(line, payload)) -> {
-      use #(start, end) <- result.try(parse_timestamps(line))
+      use #(start, end) <- result.try(timestamp.parse_range(line, "."))
       Ok(Cue(id: id, payload: payload, start_time: start, end_time: end))
     }
     Error(Nil) -> Error("Invalid cue")
@@ -133,27 +133,6 @@ fn parse_cue_id(cue: String) -> Result(#(Option(String), String), String) {
       }
     }
     Error(Nil) -> Error("Invalid cue")
-  }
-}
-
-fn parse_timestamps(line: String) -> Result(#(Int, Int), String) {
-  case string.split(line, " --> ") {
-    [start, end] -> {
-      use start <- result.try(
-        start
-        |> parse_timestamp()
-        |> result.replace_error("Invalid start timestamp"),
-      )
-
-      use end <- result.try(
-        end
-        |> parse_timestamp()
-        |> result.replace_error("Invalid end timestamp"),
-      )
-
-      Ok(#(start, end))
-    }
-    _other -> Error("Invalid timestamp")
   }
 }
 
@@ -197,7 +176,7 @@ fn do_tokenize(
     "<" <> rest -> {
       case string.split_once(rest, on: ">") {
         Ok(#(tag, rest)) -> {
-          case parse_timestamp(tag) {
+          case timestamp.parse(tag, ".") {
             Ok(ts) -> do_tokenize(rest, [Timestamp(ts), ..acc])
             Error(_) -> do_tokenize(rest, [parse_start_tag(tag), ..acc])
           }
@@ -234,50 +213,4 @@ fn parse_start_tag(input: String) -> Token {
 fn parse_tag_and_classes(input: String) -> #(String, List(String)) {
   let [tag, ..classes] = string.split(input, on: ".")
   #(tag, classes)
-}
-
-fn parse_timestamp(input: String) -> Result(Int, Nil) {
-  use #(h, m, s_ms) <- result.try({
-    case string.split(input, on: ":") {
-      [m, s_ms] -> Ok(#("0", m, s_ms))
-      [h, m, s_ms] -> Ok(#(h, m, s_ms))
-      _ -> Error(Nil)
-    }
-  })
-
-  use h <- result.try(int.parse(h))
-  use m <- result.try(int.parse(m))
-  use #(s, ms) <- result.try(split_seconds(s_ms))
-
-  Ok({ s + m * 60 + h * 60 * 60 } * 1000 + ms)
-}
-
-fn split_seconds(input: String) -> Result(#(Int, Int), Nil) {
-  case string.split(input, on: ".") {
-    [_s] -> {
-      use s <- result.try(int.parse(input))
-      Ok(#(s, 0))
-    }
-    [s, ms] -> {
-      use s <- result.try(int.parse(s))
-      use ms <- result.try(int.parse(ms))
-      Ok(#(s, ms))
-    }
-    _other -> Error(Nil)
-  }
-}
-
-fn timestamp_to_string(ms: Int) -> StringBuilder {
-  let hours = pad({ ms / 3_600_000 }, 2)
-  let minutes = pad({ { ms % 3_600_000 } / 60_000 }, 2)
-  let seconds = pad({ ms % 60_000 } / 1000, 2)
-  let ms = pad(ms % 1000, 3)
-
-  string_builder.from_strings([hours, ":", minutes, ":", seconds, ".", ms])
-}
-
-fn pad(number: Int, count: Int) -> String {
-  number
-  |> int.to_string()
-  |> string.pad_left(count, "0")
 }

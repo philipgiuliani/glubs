@@ -3,7 +3,8 @@
 [![Package Version](https://img.shields.io/hexpm/v/glubs)](https://hex.pm/packages/glubs)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glubs/)
 
-glubs (gleam subtitles) is a WebVTT (and in the future maybe SRT) parser written in Gleam, designed to parse WebVTT files and provide a structured representation of the content.
+glubs is a WebVTT and SRT parser and serializer written in Gleam.
+It also has a tokenizer for formatted WebVTT payloads.
 
 ## Installation
 
@@ -21,9 +22,10 @@ and its documentation can be found at <https://hexdocs.pm/glubs>.
 * [x] Handles both comments and cues with start and end times
 * [x] Tokenizes WebVTT cue payload into individual tokens
 * [x] Converts a WebVTT type back to a string
+* [x] Parse SRT
+* [x] Convert SRT to string
 * [ ] Parse WebVTT metadata
 * [ ] Converts a list of tokens type back to a string
-* [ ] Add SRT
 
 ## Example
 
