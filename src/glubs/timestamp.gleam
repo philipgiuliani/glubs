@@ -1,6 +1,6 @@
 import gleam/result
 import gleam/string
-import gleam/string_builder.{StringBuilder}
+import gleam/string_builder.{type StringBuilder}
 import gleam/int
 
 // Parses the given string to a timestamp.

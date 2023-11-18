@@ -1,5 +1,5 @@
 import simplifile
-import glubs/srt.{Cue, Srt}
+import glubs/srt.{type Srt, Cue, Srt}
 import gleeunit/should
 
 pub fn parse_example_test() {

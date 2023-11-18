@@ -2,7 +2,7 @@ import gleam/string
 import gleam/list
 import gleam/result
 import gleam/int
-import gleam/string_builder.{StringBuilder}
+import gleam/string_builder.{type StringBuilder}
 import glubs/timestamp
 
 pub type Srt {

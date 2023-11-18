@@ -1,8 +1,8 @@
-import gleam/option.{None, Option, Some}
+import gleam/option.{type Option, None, Some}
 import gleam/string
 import gleam/result
 import gleam/list
-import gleam/string_builder.{StringBuilder}
+import gleam/string_builder.{type StringBuilder}
 import glubs/timestamp
 
 /// Item represents an individual item in a WebVTT file, which can be either a Note or a Cue.
