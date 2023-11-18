@@ -16,7 +16,7 @@ pub type WebVTT {
   WebVTT(comment: Option(String), items: List(Item))
 }
 
-// Parses a WebVTT string and returns a Result containing the parsed WebVTT structure or a parsing error.
+/// Parses a WebVTT string and returns a Result containing the parsed WebVTT structure or a parsing error.
 pub fn parse(webvtt: String) -> Result(WebVTT, String) {
   let [header, ..body] =
     webvtt
@@ -33,25 +33,28 @@ pub fn parse(webvtt: String) -> Result(WebVTT, String) {
   Ok(WebVTT(comment: comment, items: items))
 }
 
+/// Converts a WebVTT type to a string.
 pub fn to_string(webvtt: WebVTT) -> String {
+  let assert WebVTT(comment: comment, items: items) = webvtt
+
   "WEBVTT"
   |> string_builder.from_string()
-  |> string_builder.append_builder(header_to_string(webvtt))
+  |> string_builder.append_builder(header_to_string(comment))
   |> string_builder.append("\n\n")
-  |> string_builder.append_builder(items_to_string(webvtt))
+  |> string_builder.append_builder(items_to_string(items))
   |> string_builder.append("\n")
   |> string_builder.to_string()
 }
 
-fn header_to_string(webvtt: WebVTT) {
-  case webvtt.comment {
+fn header_to_string(comment: Option(String)) {
+  case comment {
     Some(comment) -> string_builder.from_strings([" ", comment])
     None -> string_builder.new()
   }
 }
 
-fn items_to_string(webvtt: WebVTT) -> StringBuilder {
-  webvtt.items
+fn items_to_string(items: List(Item)) -> StringBuilder {
+  items
   |> list.map(item_to_string)
   |> string_builder.join("\n\n")
 }
