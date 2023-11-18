@@ -4,7 +4,8 @@ import gleam/result
 import gleam/list
 import gleam/int
 
-pub type Cue {
+pub type Item {
+  Note(String)
   Cue(
     id: option.Option(String),
     start_time: Int,
@@ -14,7 +15,7 @@ pub type Cue {
 }
 
 pub type WebVTT {
-  WebVTT(comment: option.Option(String), cues: List(Cue))
+  WebVTT(comment: option.Option(String), items: List(Item))
 }
 
 pub type ParserError {
@@ -25,15 +26,16 @@ pub fn parse(webvtt: String) -> Result(WebVTT, ParserError) {
   let [header, ..cues] =
     webvtt
     |> string.replace("\r\n", "\n")
+    |> string.trim_right()
     |> string.split("\n\n")
 
-  // TODO: Metadata still needs to be parsed
+  // TODO: Metadata still needs to be parsed as soon as the specification is clear
   let [header, ..] = string.split(header, "\n")
 
   use comment <- result.try(parse_comment(header))
-  use cues <- result.try(list.try_map(cues, parse_cue))
+  use items <- result.try(list.try_map(cues, parse_item))
 
-  Ok(WebVTT(comment: comment, cues: cues))
+  Ok(WebVTT(comment: comment, items: items))
 }
 
 fn parse_comment(header: String) -> Result(option.Option(String), ParserError) {
@@ -47,7 +49,21 @@ fn parse_comment(header: String) -> Result(option.Option(String), ParserError) {
   }
 }
 
-fn parse_cue(cue: String) -> Result(Cue, ParserError) {
+fn parse_item(item: String) -> Result(Item, ParserError) {
+  item
+  |> parse_note()
+  |> result.try_recover(fn(_) { parse_cue(item) })
+}
+
+fn parse_note(note: String) -> Result(Item, ParserError) {
+  case note {
+    "NOTE\n" <> note -> Ok(Note(note))
+    "NOTE " <> note -> Ok(Note(note))
+    _other -> Error(ParserError("Invalid note"))
+  }
+}
+
+fn parse_cue(cue: String) -> Result(Item, ParserError) {
   use #(id, rest) <- result.try(parse_cue_id(cue))
 
   case string.split_once(rest, "\n") {

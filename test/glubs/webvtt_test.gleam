@@ -1,6 +1,7 @@
 import gleeunit/should
 import gleam/option.{None, Some}
-import glubs/webvtt.{Cue, EndTag, StartTag, Text, Timestamp, WebVTT}
+import glubs/webvtt.{Cue, EndTag, Note, StartTag, Text, Timestamp, WebVTT}
+import simplifile
 
 pub fn parse_invalid_header_test() {
   "INVALID"
@@ -25,7 +26,7 @@ pub fn parse_only_header_test() {
 pub fn parse_header_with_comment_test() {
   "WEBVTT This is a comment"
   |> webvtt.parse()
-  |> should.equal(Ok(WebVTT(comment: Some("This is a comment"), cues: [])))
+  |> should.equal(Ok(WebVTT(comment: Some("This is a comment"), items: [])))
 }
 
 pub fn parse_cue_test() {
@@ -33,7 +34,41 @@ pub fn parse_cue_test() {
   |> webvtt.parse()
   |> should.equal(Ok(WebVTT(
     comment: None,
-    cues: [Cue(id: Some("1"), start_time: 123, end_time: 456, payload: "Test")],
+    items: [Cue(id: Some("1"), start_time: 123, end_time: 456, payload: "Test")],
+  )))
+}
+
+pub fn parse_comment_test() {
+  let assert Ok(content) = simplifile.read("test/fixtures/comments.vtt")
+
+  content
+  |> webvtt.parse()
+  |> should.equal(Ok(WebVTT(
+    comment: Some("- Translation of that film I like"),
+    items: [
+      Note(
+        "This translation was done by Kyle so that\nsome friends can watch it with their parents.",
+      ),
+      Cue(
+        id: Some("1"),
+        start_time: 135_000,
+        end_time: 140_000,
+        payload: "- Ta en kopp varmt te.\n- Det är inte varmt.",
+      ),
+      Cue(
+        id: Some("2"),
+        start_time: 140_000,
+        end_time: 145_000,
+        payload: "- Har en kopp te.\n- Det smakar som te.",
+      ),
+      Note("This last line may not translate well."),
+      Cue(
+        id: Some("3"),
+        start_time: 145_000,
+        end_time: 150_000,
+        payload: "- Ta en kopp",
+      ),
+    ],
   )))
 }
 
