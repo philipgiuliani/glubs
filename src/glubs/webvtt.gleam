@@ -3,6 +3,7 @@ import gleam/string
 import gleam/result
 import gleam/list
 import gleam/int
+import gleam/string_builder.{StringBuilder}
 
 /// Item represents an individual item in a WebVTT file, which can be either a Note or a Cue.
 pub type Item {
@@ -30,6 +31,58 @@ pub fn parse(webvtt: String) -> Result(WebVTT, String) {
   use items <- result.try(list.try_map(body, parse_item))
 
   Ok(WebVTT(comment: comment, items: items))
+}
+
+pub fn to_string(webvtt: WebVTT) -> String {
+  "WEBVTT"
+  |> string_builder.from_string()
+  |> string_builder.append_builder(header_to_string(webvtt))
+  |> string_builder.append("\n\n")
+  |> string_builder.append_builder(items_to_string(webvtt))
+  |> string_builder.append("\n")
+  |> string_builder.to_string()
+}
+
+fn header_to_string(webvtt: WebVTT) {
+  case webvtt.comment {
+    Some(comment) -> string_builder.from_strings([" ", comment])
+    None -> string_builder.new()
+  }
+}
+
+fn items_to_string(webvtt: WebVTT) -> StringBuilder {
+  webvtt.items
+  |> list.map(item_to_string)
+  |> string_builder.join("\n\n")
+}
+
+fn item_to_string(item: Item) -> StringBuilder {
+  case item {
+    Note(content) ->
+      case string.contains(content, "\n") {
+        True -> string_builder.from_strings(["NOTE\n", content])
+        False -> string_builder.from_strings(["NOTE ", content])
+      }
+    Cue(id: id, start_time: start_time, end_time: end_time, payload: payload) -> {
+      let start_time = timestamp_to_string(start_time)
+      let end_time = timestamp_to_string(end_time)
+      let timestamp =
+        start_time
+        |> string_builder.append(" --> ")
+        |> string_builder.append_builder(end_time)
+
+      case id {
+        Some(id) -> {
+          string_builder.from_string(id)
+          |> string_builder.append("\n")
+          |> string_builder.append_builder(timestamp)
+        }
+        None -> timestamp
+      }
+      |> string_builder.append("\n")
+      |> string_builder.append(payload)
+    }
+  }
 }
 
 fn parse_comment(header: String) -> Result(Option(String), String) {
@@ -209,4 +262,19 @@ fn split_seconds(input: String) -> Result(#(Int, Int), Nil) {
     }
     _other -> Error(Nil)
   }
+}
+
+fn timestamp_to_string(ms: Int) -> StringBuilder {
+  let hours = pad({ ms / 3_600_000 }, 2)
+  let minutes = pad({ { ms % 3_600_000 } / 60_000 }, 2)
+  let seconds = pad({ ms % 60_000 } / 1000, 2)
+  let ms = pad(ms % 1000, 3)
+
+  string_builder.from_strings([hours, ":", minutes, ":", seconds, ".", ms])
+}
+
+fn pad(number: Int, count: Int) -> String {
+  number
+  |> int.to_string()
+  |> string.pad_left(count, "0")
 }
