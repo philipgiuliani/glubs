@@ -36,10 +36,6 @@ pub fn parse(webvtt: String) -> Result(WebVTT, ParserError) {
   Ok(WebVTT(comment: comment, cues: cues))
 }
 
-pub fn to_string(_webvtt: WebVTT) -> String {
-  todo
-}
-
 fn parse_comment(header: String) -> Result(option.Option(String), ParserError) {
   case header {
     "WEBVTT" -> Ok(None)
@@ -179,36 +175,32 @@ fn parse_tag_and_classes(input: String) -> #(String, List(String)) {
 }
 
 fn parse_timestamp(input: String) -> Result(Int, Nil) {
-  case string.split(input, on: ":") {
-    [hours, minutes, seconds_and_ms] -> {
-      use hours <- result.try(int.parse(hours))
-      use minutes <- result.try(int.parse(minutes))
-      use #(seconds, ms) <- result.try(split_seconds(seconds_and_ms))
-
-      Ok({ seconds + minutes * 60 + hours * 60 * 60 } * 1000 + ms)
+  use #(h, m, s_ms) <- result.try({
+    case string.split(input, on: ":") {
+      [m, s_ms] -> Ok(#("0", m, s_ms))
+      [h, m, s_ms] -> Ok(#(h, m, s_ms))
+      _ -> Error(Nil)
     }
+  })
 
-    [minutes, seconds_and_ms] -> {
-      use minutes <- result.try(int.parse(minutes))
-      use #(seconds, ms) <- result.try(split_seconds(seconds_and_ms))
+  use h <- result.try(int.parse(h))
+  use m <- result.try(int.parse(m))
+  use #(s, ms) <- result.try(split_seconds(s_ms))
 
-      Ok({ seconds + minutes * 60 } * 1000 + ms)
-    }
-
-    [_] -> Error(Nil)
-  }
+  Ok({ s + m * 60 + h * 60 * 60 } * 1000 + ms)
 }
 
 fn split_seconds(input: String) -> Result(#(Int, Int), Nil) {
-  case string.split_once(input, on: ".") {
-    Ok(#(seconds, ms)) -> {
-      use seconds <- result.try(int.parse(seconds))
+  case string.split(input, on: ".") {
+    [_s] -> {
+      use s <- result.try(int.parse(input))
+      Ok(#(s, 0))
+    }
+    [s, ms] -> {
+      use s <- result.try(int.parse(s))
       use ms <- result.try(int.parse(ms))
-      Ok(#(seconds, ms))
+      Ok(#(s, ms))
     }
-    Error(_) -> {
-      use seconds <- result.try(int.parse(input))
-      Ok(#(seconds, 0))
-    }
+    _other -> Error(Nil)
   }
 }
