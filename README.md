@@ -20,8 +20,10 @@ and its documentation can be found at <https://hexdocs.pm/glubs>.
 * [x] Parses WebVTT files into a structured format
 * [x] Handles both comments and cues with start and end times
 * [x] Tokenizes WebVTT cue payload into individual tokens
-* [ ] Converts a WebVTT type back to a string
+* [x] Converts a WebVTT type back to a string
+* [ ] Parse WebVTT metadata
 * [ ] Converts a list of tokens type back to a string
+* [ ] Add SRT
 
 ## Example
 
