@@ -18,12 +18,13 @@ pub type Item {
   )
 }
 
-type Metadata =
-  #(String, String)
-
 /// Represents a WebVTT file with an optional comment and a list of items.
 pub type WebVTT {
-  WebVTT(metadata: List(Metadata), comment: Option(String), items: List(Item))
+  WebVTT(
+    metadata: List(#(String, String)),
+    comment: Option(String),
+    items: List(Item),
+  )
 }
 
 /// Parses a WebVTT string and returns a Result containing the parsed WebVTT structure or a parsing error.
@@ -65,7 +66,7 @@ fn header_to_string(comment: Option(String)) -> StringBuilder {
   }
 }
 
-fn metadata_to_string(metadata: List(Metadata)) -> StringBuilder {
+fn metadata_to_string(metadata: List(#(String, String))) -> StringBuilder {
   case list.is_empty(metadata) {
     True -> string_builder.new()
     False ->
@@ -140,7 +141,9 @@ fn settings_to_string(settings: List(#(String, String))) -> StringBuilder {
   }
 }
 
-fn parse_metadata(metadata: List(String)) -> Result(List(Metadata), String) {
+fn parse_metadata(
+  metadata: List(String),
+) -> Result(List(#(String, String)), String) {
   metadata
   |> list.try_map(fn(meta) {
     case string.split_once(meta, ": ") {
