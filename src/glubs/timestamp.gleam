@@ -24,14 +24,19 @@ pub fn parse(input: String, fraction_sep: String) -> Result(Int, Nil) {
 pub fn parse_range(
   line: String,
   fraction_sep: String,
-) -> Result(#(Int, Int), String) {
+) -> Result(#(Int, Int, String), String) {
   case string.split(line, " --> ") {
-    [start, end] -> {
+    [start, end_with_rest] -> {
       use start <- result.try(
         start
         |> parse(fraction_sep)
         |> result.replace_error("Invalid start timestamp"),
       )
+
+      let #(end, rest) = case string.split_once(end_with_rest, " ") {
+        Ok(result) -> result
+        Error(Nil) -> #(end_with_rest, "")
+      }
 
       use end <- result.try(
         end
@@ -39,7 +44,7 @@ pub fn parse_range(
         |> result.replace_error("Invalid end timestamp"),
       )
 
-      Ok(#(start, end))
+      Ok(#(start, end, rest))
     }
     _other -> Error("Invalid timestamp")
   }

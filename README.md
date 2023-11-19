@@ -24,8 +24,8 @@ and its documentation can be found at <https://hexdocs.pm/glubs>.
 * [x] Converts a WebVTT type back to a string
 * [x] Parse SRT
 * [x] Convert SRT to string
-* [ ] Support WebVTT STYLE-Tags (https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API#styling_webvtt_cues)
-* [ ] Support WebVTT cue settings (https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API#cue_settings)
+* [x] Support WebVTT STYLE-Tags (https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API#styling_webvtt_cues)
+* [x] Support WebVTT cue settings (https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API#cue_settings)
 * [ ] Support WebVTT header metadata
 
 ## Example

@@ -56,7 +56,7 @@ fn parse_cue(input: String) -> Result(Cue, String) {
     |> result.replace_error("Cannot parse identifier"),
   )
 
-  use #(start_time, end_time) <- result.try(timestamp.parse_range(ts, ","))
+  use #(start_time, end_time, "") <- result.try(timestamp.parse_range(ts, ","))
 
   Ok(Cue(
     id: id,

@@ -8,7 +8,14 @@ import glubs/timestamp
 /// Item represents an individual item in a WebVTT file, which can be either a Note or a Cue.
 pub type Item {
   Note(String)
-  Cue(id: Option(String), start_time: Int, end_time: Int, payload: String)
+  Style(String)
+  Cue(
+    id: Option(String),
+    start_time: Int,
+    end_time: Int,
+    payload: String,
+    settings: List(#(String, String)),
+  )
 }
 
 /// Represents a WebVTT file with an optional comment and a list of items.
@@ -66,13 +73,22 @@ fn item_to_string(item: Item) -> StringBuilder {
         True -> string_builder.from_strings(["NOTE\n", content])
         False -> string_builder.from_strings(["NOTE ", content])
       }
-    Cue(id: id, start_time: start_time, end_time: end_time, payload: payload) -> {
+    Style(content) -> string_builder.from_strings(["STYLE\n", content])
+    Cue(
+      id: id,
+      start_time: start_time,
+      end_time: end_time,
+      payload: payload,
+      settings: settings,
+    ) -> {
       let start_time = timestamp.to_string(start_time, ".")
       let end_time = timestamp.to_string(end_time, ".")
+      let settings_builder = settings_to_string(settings)
       let timestamp =
         start_time
         |> string_builder.append(" --> ")
         |> string_builder.append_builder(end_time)
+        |> string_builder.append_builder(settings_builder)
 
       case id {
         Some(id) -> {
@@ -85,6 +101,19 @@ fn item_to_string(item: Item) -> StringBuilder {
       |> string_builder.append("\n")
       |> string_builder.append(payload)
     }
+  }
+}
+
+fn settings_to_string(settings: List(#(String, String))) -> StringBuilder {
+  case settings {
+    [] -> string_builder.new()
+    settings ->
+      settings
+      |> list.map(fn(item) {
+        string_builder.from_strings([item.0, ":", item.1])
+      })
+      |> string_builder.join(" ")
+      |> string_builder.prepend(" ")
   }
 }
 
@@ -101,6 +130,7 @@ fn parse_comment(header: String) -> Result(Option(String), String) {
 fn parse_item(item: String) -> Result(Item, String) {
   item
   |> parse_note()
+  |> result.try_recover(fn(_) { parse_style(item) })
   |> result.try_recover(fn(_) { parse_cue(item) })
 }
 
@@ -112,15 +142,45 @@ fn parse_note(note: String) -> Result(Item, String) {
   }
 }
 
+fn parse_style(style: String) -> Result(Item, String) {
+  case style {
+    "STYLE\n" <> style -> Ok(Style(style))
+    _other -> Error("Invalid style")
+  }
+}
+
 fn parse_cue(cue: String) -> Result(Item, String) {
   use #(id, rest) <- result.try(parse_cue_id(cue))
 
   case string.split_once(rest, "\n") {
     Ok(#(line, payload)) -> {
-      use #(start, end) <- result.try(timestamp.parse_range(line, "."))
-      Ok(Cue(id: id, payload: payload, start_time: start, end_time: end))
+      use #(start, end, rest) <- result.try(timestamp.parse_range(line, "."))
+      use settings <- result.try(parse_settings(rest))
+
+      Ok(Cue(
+        id: id,
+        payload: payload,
+        start_time: start,
+        end_time: end,
+        settings: settings,
+      ))
     }
     Error(Nil) -> Error("Invalid cue")
+  }
+}
+
+fn parse_settings(settings: String) -> Result(List(#(String, String)), String) {
+  case settings != "" {
+    True ->
+      settings
+      |> string.split(" ")
+      |> list.try_map(fn(setting) {
+        case string.split_once(setting, ":") {
+          Ok(item) -> Ok(item)
+          Error(Nil) -> Error("Invalid cue settings")
+        }
+      })
+    False -> Ok([])
   }
 }
 
