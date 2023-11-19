@@ -18,9 +18,12 @@ pub type Item {
   )
 }
 
+type Metadata =
+  #(String, String)
+
 /// Represents a WebVTT file with an optional comment and a list of items.
 pub type WebVTT {
-  WebVTT(comment: Option(String), items: List(Item))
+  WebVTT(metadata: List(Metadata), comment: Option(String), items: List(Item))
 }
 
 /// Parses a WebVTT string and returns a Result containing the parsed WebVTT structure or a parsing error.
@@ -31,39 +34,59 @@ pub fn parse(webvtt: String) -> Result(WebVTT, String) {
     |> string.trim_right()
     |> string.split("\n\n")
 
-  // TODO: Metadata still needs to be parsed as soon as the specification is clear
-  let [header, ..] = string.split(header, "\n")
+  let [header, ..metadata] = string.split(header, "\n")
 
   use comment <- result.try(parse_comment(header))
+  use metadata <- result.try(parse_metadata(metadata))
   use items <- result.try(list.try_map(body, parse_item))
 
-  Ok(WebVTT(comment: comment, items: items))
+  Ok(WebVTT(metadata: metadata, comment: comment, items: items))
 }
 
 /// Converts a WebVTT type to a string.
 pub fn to_string(webvtt: WebVTT) -> String {
-  let assert WebVTT(comment: comment, items: items) = webvtt
+  let assert WebVTT(metadata: metadata, comment: comment, items: items) = webvtt
 
-  "WEBVTT"
-  |> string_builder.from_string()
-  |> string_builder.append_builder(header_to_string(comment))
-  |> string_builder.append("\n\n")
-  |> string_builder.append_builder(items_to_string(items))
+  [
+    header_to_string(comment),
+    metadata_to_string(metadata),
+    items_to_string(items),
+  ]
+  |> list.filter(fn(b) { string_builder.is_empty(b) == False })
+  |> string_builder.join("\n")
   |> string_builder.append("\n")
   |> string_builder.to_string()
 }
 
-fn header_to_string(comment: Option(String)) {
+fn header_to_string(comment: Option(String)) -> StringBuilder {
   case comment {
-    Some(comment) -> string_builder.from_strings([" ", comment])
-    None -> string_builder.new()
+    Some(comment) -> string_builder.from_strings(["WEBVTT ", comment])
+    None -> string_builder.from_string("WEBVTT")
+  }
+}
+
+fn metadata_to_string(metadata: List(Metadata)) -> StringBuilder {
+  case list.is_empty(metadata) {
+    True -> string_builder.new()
+    False ->
+      metadata
+      |> list.map(fn(item) {
+        string_builder.from_strings([item.0, ": ", item.1])
+      })
+      |> string_builder.join("\n")
   }
 }
 
 fn items_to_string(items: List(Item)) -> StringBuilder {
-  items
-  |> list.map(item_to_string)
-  |> string_builder.join("\n\n")
+  case list.is_empty(items) {
+    True -> string_builder.new()
+    False -> {
+      items
+      |> list.map(item_to_string)
+      |> string_builder.join("\n\n")
+      |> string_builder.prepend("\n")
+    }
+  }
 }
 
 fn item_to_string(item: Item) -> StringBuilder {
@@ -115,6 +138,16 @@ fn settings_to_string(settings: List(#(String, String))) -> StringBuilder {
       |> string_builder.join(" ")
       |> string_builder.prepend(" ")
   }
+}
+
+fn parse_metadata(metadata: List(String)) -> Result(List(Metadata), String) {
+  metadata
+  |> list.try_map(fn(meta) {
+    case string.split_once(meta, ": ") {
+      Ok(entry) -> Ok(entry)
+      Error(Nil) -> Error("Invalid metadata item")
+    }
+  })
 }
 
 fn parse_comment(header: String) -> Result(Option(String), String) {

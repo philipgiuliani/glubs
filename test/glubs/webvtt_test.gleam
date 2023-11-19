@@ -25,7 +25,25 @@ pub fn parse_only_header_test() {
 pub fn parse_header_with_comment_test() {
   "WEBVTT This is a comment"
   |> webvtt.parse()
-  |> should.equal(Ok(WebVTT(comment: Some("This is a comment"), items: [])))
+  |> should.equal(Ok(WebVTT(
+    comment: Some("This is a comment"),
+    metadata: [],
+    items: [],
+  )))
+}
+
+pub fn parse_header_with_metadata_test() {
+  let text = "WEBVTT\nHello: World\n"
+  let structured =
+    WebVTT(comment: None, metadata: [#("Hello", "World")], items: [])
+
+  text
+  |> webvtt.parse()
+  |> should.equal(Ok(structured))
+
+  structured
+  |> webvtt.to_string()
+  |> should.equal(text)
 }
 
 pub fn parse_cue_test() {
@@ -33,6 +51,7 @@ pub fn parse_cue_test() {
   |> webvtt.parse()
   |> should.equal(Ok(WebVTT(
     comment: None,
+    metadata: [],
     items: [
       Cue(
         id: Some("1"),
@@ -52,6 +71,7 @@ pub fn parse_comment_test() {
   |> webvtt.parse()
   |> should.equal(Ok(WebVTT(
     comment: Some("- Translation of that film I like"),
+    metadata: [],
     items: [
       Note(
         "This translation was done by Kyle so that\nsome friends can watch it with their parents.",
@@ -89,6 +109,7 @@ pub fn parse_style_test() {
   |> webvtt.parse()
   |> should.equal(Ok(WebVTT(
     comment: None,
+    metadata: [],
     items: [
       Style(
         "::cue {\n  background-image: linear-gradient(to bottom, dimgray, lightgray);\n  color: papayawhip;\n}",
@@ -114,6 +135,7 @@ pub fn parse_settings_test() {
   |> webvtt.parse()
   |> should.equal(Ok(WebVTT(
     comment: None,
+    metadata: [],
     items: [
       Cue(
         id: None,
@@ -153,6 +175,7 @@ pub fn to_string_test() {
 
   WebVTT(
     comment: Some("- Translation of that film I like"),
+    metadata: [],
     items: [
       Note(
         "This translation was done by Kyle so that\nsome friends can watch it with their parents.",

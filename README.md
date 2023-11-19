@@ -26,7 +26,8 @@ and its documentation can be found at <https://hexdocs.pm/glubs>.
 * [x] Convert SRT to string
 * [x] Support WebVTT STYLE-Tags (https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API#styling_webvtt_cues)
 * [x] Support WebVTT cue settings (https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API#cue_settings)
-* [ ] Support WebVTT header metadata
+* [x] Support WebVTT header metadata
+* [ ] Support HLS X-TIMESTAMP-MAP
 
 ## Example
 
