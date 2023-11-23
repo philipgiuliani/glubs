@@ -46,6 +46,24 @@ pub fn parse_header_with_metadata_test() {
   |> should.equal(text)
 }
 
+pub fn parse_header_with_timestamp_map_test() {
+  let text = "WEBVTT\nX-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:284722\n"
+  let structured =
+    WebVTT(
+      comment: None,
+      metadata: [#("X-TIMESTAMP-MAP", "LOCAL:00:00:00.000,MPEGTS:284722")],
+      items: [],
+    )
+
+  text
+  |> webvtt.parse()
+  |> should.equal(Ok(structured))
+
+  structured
+  |> webvtt.to_string()
+  |> should.equal(text)
+}
+
 pub fn parse_cue_test() {
   "WEBVTT\n\n1\n00:00.123 --> 00:00.456\nTest"
   |> webvtt.parse()

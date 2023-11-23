@@ -72,7 +72,12 @@ fn metadata_to_string(metadata: List(#(String, String))) -> StringBuilder {
     False ->
       metadata
       |> list.map(fn(item) {
-        string_builder.from_strings([item.0, ": ", item.1])
+        let separator = case item.0 == "X-TIMESTAMP-MAP" {
+          True -> "="
+          False -> ": "
+        }
+
+        string_builder.from_strings([item.0, separator, item.1])
       })
       |> string_builder.join("\n")
   }
@@ -146,9 +151,14 @@ fn parse_metadata(
 ) -> Result(List(#(String, String)), String) {
   metadata
   |> list.try_map(fn(meta) {
-    case string.split_once(meta, ": ") {
-      Ok(entry) -> Ok(entry)
-      Error(Nil) -> Error("Invalid metadata item")
+    case meta {
+      "X-TIMESTAMP-MAP=" <> header -> Ok(#("X-TIMESTAMP-MAP", header))
+      _other -> {
+        case string.split_once(meta, ": ") {
+          Ok(entry) -> Ok(entry)
+          Error(Nil) -> Error("Invalid metadata item")
+        }
+      }
     }
   })
 }
