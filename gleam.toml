@@ -1,5 +1,5 @@
 name = "glubs"
-version = "0.3.0"
+version = "1.0.0"
 
 description = "WebVTT and SRT parser and serializer."
 
