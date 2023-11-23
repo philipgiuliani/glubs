@@ -27,7 +27,7 @@ and its documentation can be found at <https://hexdocs.pm/glubs>.
 * [x] Support WebVTT STYLE-Tags (https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API#styling_webvtt_cues)
 * [x] Support WebVTT cue settings (https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API#cue_settings)
 * [x] Support WebVTT header metadata
-* [ ] Support HLS X-TIMESTAMP-MAP
+* [x] Support HLS X-TIMESTAMP-MAP
 
 ## Example
 
@@ -43,6 +43,7 @@ pub fn main() {
 
   let assert WebVTT(
     comment: Some("- Translation of that film I like"),
+    metadata: [],
     items: [
       Note(
         "This translation was done by Kyle so that\nsome friends can watch it with their parents.",
@@ -52,12 +53,14 @@ pub fn main() {
         start_time: 135_000,
         end_time: 140_000,
         payload: "- Ta en kopp varmt te.\n- Det är inte varmt.",
+        settings: [],
       ),
       Cue(
         id: Some("2"),
         start_time: 140_000,
         end_time: 145_000,
         payload: "- Har en kopp te.\n- Det smakar som te.",
+        settings: [],
       ),
       Note("This last line may not translate well."),
       Cue(
@@ -65,6 +68,7 @@ pub fn main() {
         start_time: 145_000,
         end_time: 150_000,
         payload: "- Ta en kopp",
+        settings: [],
       ),
     ],
   ) = result
