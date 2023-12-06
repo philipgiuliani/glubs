@@ -29,13 +29,13 @@ pub type WebVTT {
 
 /// Parses a WebVTT string and returns a Result containing the parsed WebVTT structure or a parsing error.
 pub fn parse(webvtt: String) -> Result(WebVTT, String) {
-  let [header, ..body] =
+  let assert [header, ..body] =
     webvtt
     |> string.replace("\r\n", "\n")
     |> string.trim_right()
     |> string.split("\n\n")
 
-  let [header, ..metadata] = string.split(header, "\n")
+  let assert [header, ..metadata] = string.split(header, "\n")
 
   use comment <- result.try(parse_comment(header))
   use metadata <- result.try(parse_metadata(metadata))
@@ -317,6 +317,6 @@ fn parse_start_tag(input: String) -> Token {
 }
 
 fn parse_tag_and_classes(input: String) -> #(String, List(String)) {
-  let [tag, ..classes] = string.split(input, on: ".")
+  let assert [tag, ..classes] = string.split(input, on: ".")
   #(tag, classes)
 }

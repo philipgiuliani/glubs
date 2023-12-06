@@ -48,7 +48,7 @@ fn cue_to_string(cue: Cue) -> StringBuilder {
 }
 
 fn parse_cue(input: String) -> Result(Cue, String) {
-  let [id, ts, ..lines] = string.split(input, "\n")
+  let assert [id, ts, ..lines] = string.split(input, "\n")
 
   use id <- result.try(
     id
@@ -56,7 +56,7 @@ fn parse_cue(input: String) -> Result(Cue, String) {
     |> result.replace_error("Cannot parse identifier"),
   )
 
-  use #(start_time, end_time, "") <- result.try(timestamp.parse_range(ts, ","))
+  use #(start_time, end_time, _) <- result.try(timestamp.parse_range(ts, ","))
 
   Ok(Cue(
     id: id,
