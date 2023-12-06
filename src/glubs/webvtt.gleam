@@ -3,7 +3,7 @@ import gleam/string
 import gleam/result
 import gleam/list
 import gleam/string_builder.{type StringBuilder}
-import glubs/timestamp
+import glubs/internal/timestamp
 
 /// Item represents an individual item in a WebVTT file, which can be either a Note or a Cue.
 pub type Item {

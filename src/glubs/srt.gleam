@@ -3,7 +3,7 @@ import gleam/list
 import gleam/result
 import gleam/int
 import gleam/string_builder.{type StringBuilder}
-import glubs/timestamp
+import glubs/internal/timestamp
 
 pub type Srt {
   Srt(cues: List(Cue))
