@@ -40,8 +40,8 @@ fn cue_to_string(cue: Cue) -> StringBuilder {
   [
     string_builder.from_string(int.to_string(cue.id)),
     start_time
-    |> string_builder.append(" --> ")
-    |> string_builder.append_builder(end_time),
+      |> string_builder.append(" --> ")
+      |> string_builder.append_builder(end_time),
     string_builder.from_string(cue.payload),
   ]
   |> string_builder.join("\n")
