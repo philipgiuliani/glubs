@@ -1,7 +1,7 @@
-import gleam/option.{type Option, None, Some}
-import gleam/string
-import gleam/result
 import gleam/list
+import gleam/option.{type Option, None, Some}
+import gleam/result
+import gleam/string
 import gleam/string_builder.{type StringBuilder}
 import glubs/internal/timestamp
 
@@ -46,7 +46,7 @@ pub fn parse(webvtt: String) -> Result(WebVTT, String) {
 
 /// Converts a WebVTT type to a string.
 pub fn to_string(webvtt: WebVTT) -> String {
-  let assert WebVTT(metadata: metadata, comment: comment, items: items) = webvtt
+  let WebVTT(metadata: metadata, comment: comment, items: items) = webvtt
 
   [
     header_to_string(comment),

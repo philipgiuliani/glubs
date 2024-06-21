@@ -1,7 +1,7 @@
-import gleam/string
+import gleam/int
 import gleam/list
 import gleam/result
-import gleam/int
+import gleam/string
 import gleam/string_builder.{type StringBuilder}
 import glubs/internal/timestamp
 

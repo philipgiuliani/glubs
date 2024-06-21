@@ -1,6 +1,6 @@
-import simplifile
-import glubs/srt.{type Srt, Cue, Srt}
 import gleeunit/should
+import glubs/srt.{type Srt, Cue, Srt}
+import simplifile
 
 pub fn parse_example_test() {
   let assert Ok(content) = simplifile.read("test/fixtures/example.srt")

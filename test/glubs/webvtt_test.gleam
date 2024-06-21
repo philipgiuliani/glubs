@@ -1,5 +1,5 @@
-import gleeunit/should
 import gleam/option.{None, Some}
+import gleeunit/should
 import glubs/webvtt.{Cue, EndTag, Note, StartTag, Style, Text, Timestamp, WebVTT}
 import simplifile
 
